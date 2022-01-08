@@ -110,7 +110,7 @@ print(f"No of image samples: {len(image_samples)}")
 
 # use certain samples only
 np.random.seed(10)
-choices = np.random.randint(len(labels), size=4000)
+choices = np.random.randint(len(labels), size=8000)
 
 X = image_samples[choices]
 y = labels[choices]
@@ -141,7 +141,7 @@ y_binary
 from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(X, y_binary,
-                                                    test_size=0.3,
+                                                    test_size=0.2,
                                                     random_state=10,
                                                    stratify=y_binary)
 
@@ -181,7 +181,7 @@ np.min(np.where(explained > 90))
 
 # ## Transformation Pipeline
 
-# In[15]:
+# In[17]:
 
 
 # model pipeline 
@@ -191,18 +191,18 @@ from sklearn.pipeline import Pipeline
 
 pipeline = Pipeline([
     ('scaler', StandardScaler()), #standard scaling
-    ('pca', IncrementalPCA(n_components=60, batch_size=100, copy=False)), # PCA Dimensionality reduction
+    ('pca', IncrementalPCA(n_components=65, batch_size=100, copy=False)), # PCA Dimensionality reduction
                     ])
 
 
-# In[16]:
+# In[18]:
 
 
 pipeline.fit(X_train)
 X_train = pipeline.transform(X_train)
 
 
-# In[17]:
+# In[19]:
 
 
 X_train.shape
@@ -212,13 +212,13 @@ X_train.shape
 
 # ### Random Forest
 
-# In[18]:
+# In[20]:
 
 
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
 
-# In[19]:
+# In[21]:
 
 
 from sklearn.ensemble import RandomForestClassifier
@@ -228,7 +228,7 @@ forest.fit(X_train, y_train)
 y_train_pred = forest.predict(X_train) #prediciton based on X_train
 
 
-# In[20]:
+# In[22]:
 
 
 def score_check(ytrue, ypred, name):
@@ -239,13 +239,13 @@ def score_check(ytrue, ypred, name):
     print("F1 Score:", f1_score(ytrue, ypred, pos_label=1))
 
 
-# In[21]:
+# In[23]:
 
 
 score_check(y_train, y_train_pred, 'Training')
 
 
-# In[22]:
+# In[24]:
 
 
 # for stratified cross validation
@@ -254,14 +254,14 @@ from sklearn.model_selection import StratifiedKFold
 kf = StratifiedKFold(n_splits=3, shuffle=True, random_state=10)
 
 
-# In[23]:
+# In[25]:
 
 
 # Collections of all the cross validation scores
 final_scores = {}
 
 
-# In[24]:
+# In[26]:
 
 
 from sklearn.model_selection import cross_val_score
@@ -286,7 +286,7 @@ def cv_score_check(model, X, y, cv, model_name=None, scores_dict=None, use=False
         scores_dict[model_name] = scores
 
 
-# In[25]:
+# In[27]:
 
 
 cv_score_check(forest, X_train, y_train, kf)
@@ -297,7 +297,7 @@ cv_score_check(forest, X_train, y_train, kf)
 
 # #### Fine tuning hyperparameters
 
-# In[26]:
+# In[28]:
 
 
 # Define hyperparameters to be used in the randomized search cross validation 
@@ -334,7 +334,7 @@ random_grid = {'n_estimators': n_estimators,
 pprint(random_grid)
 
 
-# In[27]:
+# In[29]:
 
 
 # Random search of parameters, using 3 fold cross validation, 
@@ -351,7 +351,7 @@ rf_random = RandomizedSearchCV(estimator=forest,
 rf_random.fit(X_train, y_train)
 
 
-# In[28]:
+# In[30]:
 
 
 # best model of the random forest model
@@ -359,7 +359,7 @@ forest_best = rf_random.best_estimator_
 print(forest_best)
 
 
-# In[29]:
+# In[31]:
 
 
 cv_score_check(forest_best, X_train, y_train, kf, model_name='Random Forest', 
@@ -370,7 +370,7 @@ cv_score_check(forest_best, X_train, y_train, kf, model_name='Random Forest',
 
 # ### Logistic Regression
 
-# In[30]:
+# In[32]:
 
 
 from sklearn.linear_model import LogisticRegression
@@ -381,20 +381,20 @@ logistic.fit(X_train, y_train)
 y_train_pred = logistic.predict(X_train)
 
 
-# In[31]:
+# In[33]:
 
 
 score_check(y_train, y_train_pred, 'Training')
 
 
-# In[32]:
+# In[34]:
 
 
 # CV score before fine-tuning
 cv_score_check(logistic, X_train, y_train, kf)
 
 
-# In[33]:
+# In[35]:
 
 
 from sklearn.model_selection import RepeatedStratifiedKFold
@@ -424,14 +424,14 @@ for mean, stdev, param in zip(means, stds, params):
     print("%f (%f) with: %r" % (mean, stdev, param))
 
 
-# In[34]:
+# In[36]:
 
 
 logistic_best = logistic_grid.best_estimator_
 print(logistic_best)
 
 
-# In[35]:
+# In[37]:
 
 
 # CV score after fine-tuning
@@ -441,7 +441,7 @@ cv_score_check(logistic_best, X_train, y_train, kf, model_name='Logistic Regress
 
 # ### SVM
 
-# In[36]:
+# In[38]:
 
 
 # SVM
@@ -454,14 +454,14 @@ y_train_pred = svm.predict(X_train)
 score_check(y_train, y_train_pred, 'Training')
 
 
-# In[37]:
+# In[39]:
 
 
 # CV score before fine-tuning
 cv_score_check(svm, X_train, y_train, kf)
 
 
-# In[38]:
+# In[40]:
 
 
 # # SVM
@@ -473,14 +473,14 @@ svm_grid = GridSearchCV(svc, param_grid, scoring='f1', cv=kf)
 svm_grid.fit(X_train, y_train)
 
 
-# In[39]:
+# In[41]:
 
 
 svm_best = svm_grid.best_estimator_
 print(svm_best)
 
 
-# In[40]:
+# In[42]:
 
 
 # CV score after fine-tuning
@@ -490,7 +490,7 @@ cv_score_check(svm_best, X_train, y_train, kf, model_name='SVM',
 
 # ## Cross Validation Results Compare
 
-# In[41]:
+# In[43]:
 
 
 result = pd.DataFrame(final_scores)
@@ -501,7 +501,7 @@ result
 
 # # ROC Curve
 
-# In[42]:
+# In[44]:
 
 
 from sklearn.metrics import roc_curve, roc_auc_score
@@ -539,7 +539,7 @@ plt.show()
 
 # ## ROC Scores
 
-# In[43]:
+# In[45]:
 
 
 # Random Forest
@@ -558,13 +558,13 @@ print(f"SVM ROC AUC: {roc_auc_svm}")
 
 # ## Test
 
-# In[44]:
+# In[46]:
 
 
 X_test = pipeline.transform(X_test)
 
 
-# In[55]:
+# In[47]:
 
 
 # Random Forest
@@ -572,7 +572,7 @@ rf_y_test_pred = forest_best.predict(X_test)
 score_check(y_test, rf_y_test_pred, 'Test')
 
 
-# In[56]:
+# In[48]:
 
 
 # Logistic regression
@@ -580,7 +580,7 @@ logistic_y_test_pred = logistic_best.predict(X_test)
 score_check(y_test, logistic_y_test_pred, 'Test')
 
 
-# In[57]:
+# In[49]:
 
 
 # SVM
@@ -599,31 +599,31 @@ from sklearn.metrics import confusion_matrix
 import seaborn as sns;
 
 
-# In[62]:
+# In[54]:
 
 
 # Random Forest
 
 cf_matrix = confusion_matrix(y_test, rf_y_test_pred)
-sns.heatmap(cf_matrix, annot=True, fmt='.3g');
+sns.heatmap(cf_matrix, annot=True, fmt='.4g');
 
 
-# In[59]:
+# In[55]:
 
 
 # Logistic Regression
 
 cf_matrix = confusion_matrix(y_test, logistic_y_test_pred)
-sns.heatmap(cf_matrix, annot=True, fmt='.3g');
+sns.heatmap(cf_matrix, annot=True, fmt='.4g');
 
 
-# In[60]:
+# In[56]:
 
 
 # SVM
 
 cf_matrix = confusion_matrix(y_test, svm_y_test_pred)
-sns.heatmap(cf_matrix, annot=True, fmt='.3g');
+sns.heatmap(cf_matrix, annot=True, fmt='.4g');
 
 
 # We can see the true negative (971) and true positive (136) are relatively high compared to the false positive (26) and false negative (67). 
