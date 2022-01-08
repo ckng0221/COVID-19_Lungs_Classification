@@ -91,7 +91,7 @@ for lungtype in lungTypes:
 image_samples = np.concatenate(image_samples)
 labels = np.array(labels)
 
-print(f"Final dimension of samples: {image_samples.shape}")
+print(f"Final shape of samples: {image_samples.shape}")
 
 
 # In[7]:
@@ -111,7 +111,6 @@ print(f"No of image samples: {len(image_samples)}")
 # use certain samples only
 np.random.seed(10)
 choices = np.random.randint(len(labels), size=4000)
-# choices = np.random.randint(len(labels), size=image_samples.shape[0]) # use max
 
 X = image_samples[choices]
 y = labels[choices]
@@ -167,7 +166,7 @@ pca_700 = PCA(n_components=700)
 pca_700.fit(X)
 
 plt.grid()
-plt.plot(np.cumsum(pca_784.explained_variance_ratio_ * 100))
+plt.plot(np.cumsum(pca_700.explained_variance_ratio_ * 100))
 plt.xlabel('Number of components')
 plt.ylabel('Explained variance')
 plt.show()
@@ -176,7 +175,7 @@ plt.show()
 # In[14]:
 
 
-explained = np.cumsum(pca_784.explained_variance_ratio_ * 100)
+explained = np.cumsum(pca_700.explained_variance_ratio_ * 100)
 np.min(np.where(explained > 90))
 
 
@@ -502,7 +501,7 @@ result
 
 # # ROC Curve
 
-# In[43]:
+# In[42]:
 
 
 from sklearn.metrics import roc_curve, roc_auc_score
@@ -540,7 +539,7 @@ plt.show()
 
 # ## ROC Scores
 
-# In[44]:
+# In[43]:
 
 
 # Random Forest
@@ -559,48 +558,71 @@ print(f"SVM ROC AUC: {roc_auc_svm}")
 
 # ## Test
 
-# In[45]:
+# In[44]:
 
 
 X_test = pipeline.transform(X_test)
 
 
-# In[46]:
+# In[55]:
 
 
 # Random Forest
-y_test_pred = forest_best.predict(X_test)
-score_check(y_test, y_test_pred, 'Test')
+rf_y_test_pred = forest_best.predict(X_test)
+score_check(y_test, rf_y_test_pred, 'Test')
 
 
-# In[47]:
+# In[56]:
 
 
 # Logistic regression
-y_test_pred = logistic_best.predict(X_test)
-score_check(y_test, y_test_pred, 'Test')
+logistic_y_test_pred = logistic_best.predict(X_test)
+score_check(y_test, logistic_y_test_pred, 'Test')
 
 
-# In[48]:
+# In[57]:
 
 
 # SVM
-y_test_pred = svm_best.predict(X_test)
-score_check(y_test, y_test_pred, 'Test')
+svm_y_test_pred = svm_best.predict(X_test)
+score_check(y_test, svm_y_test_pred, 'Test')
 
 
-# We observed SVM model has the best performacne.
-# Using the best model, SVM, we further explore it
+# We observed SVM model has the best performance.
 
 # ## Confusion Matrix
 
-# In[49]:
+# In[50]:
 
 
 from sklearn.metrics import confusion_matrix
 import seaborn as sns;
 
-cf_matrix = confusion_matrix(y_test, y_test_pred)
+
+# In[62]:
+
+
+# Random Forest
+
+cf_matrix = confusion_matrix(y_test, rf_y_test_pred)
+sns.heatmap(cf_matrix, annot=True, fmt='.3g');
+
+
+# In[59]:
+
+
+# Logistic Regression
+
+cf_matrix = confusion_matrix(y_test, logistic_y_test_pred)
+sns.heatmap(cf_matrix, annot=True, fmt='.3g');
+
+
+# In[60]:
+
+
+# SVM
+
+cf_matrix = confusion_matrix(y_test, svm_y_test_pred)
 sns.heatmap(cf_matrix, annot=True, fmt='.3g');
 
 
